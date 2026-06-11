@@ -1,8 +1,19 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { auth } from '@/auth';
 
 export async function POST(request: Request) {
+  // Curation writes to src/data/routes.json, which only exists in a dev checkout.
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Route curation is only available in development' }, { status: 403 });
+  }
+
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const { destId, geometry } = await request.json();
 
@@ -11,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     const filePath = path.join(process.cwd(), 'src/data/routes.json');
-    let routes: Record<string, any> = {};
+    let routes: Record<string, GeoJSON.Feature> = {};
 
     if (fs.existsSync(filePath)) {
       const fileContent = fs.readFileSync(filePath, 'utf-8');
