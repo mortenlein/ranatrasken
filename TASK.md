@@ -2,12 +2,21 @@
 
 ## Active Tasks
 - [ ] Add remaining 10 of 30 destinations (data entry). <!-- id: 16 -->
+- [ ] Fix placeholder rows in destinations.ts, then re-run `node scripts/build-routes.mjs` to pick up their footpaths: <!-- id: 24 -->
+      #5 Fingerlia, #28 Svarttjønna, #29 Vindskjermen, #30 Østerdalsknabben (parking == summit coords);
+      #27 Storvarden (summit coords duplicated from #25 Storhaugen);
+      #4 Bjørnhaugen, #8 Granneset, #16 Lapplia (parking coords point to the wrong place entirely);
+      #11 Sauvasshytta, #13 Klokkerhagen (no parking coords).
 - [ ] Replace mock English translations with real translations. <!-- id: 17 -->
 
 ## Pending
 - [ ] Optimize image assets and route loading (Phase 3). <!-- id: 13 -->
 - [ ] Offline caching for map tiles/route data (Phase 3). <!-- id: 12 -->
-- [ ] Populate routes.json with curated routes via admin tool. <!-- id: 18 -->
+- [ ] Mobile phase 2: stampcard in the app (needs a deployed backend + real auth,
+      replacing the demo credentials provider). <!-- id: 26 -->
+- [ ] Proxy DNT trail tiles through our own backend for production: the CDN's CORS
+      whitelist only covers ut.no/localhost origins, so a deployed web app (or any
+      other origin) loses the red trail overlay without a proxy. <!-- id: 27 -->
 
 ## Completed
 - [x] Architectural Review of initial file structure. <!-- id: 0 -->
@@ -28,4 +37,13 @@
 - [x] Fix CSS popup class names (mapboxgl → maplibregl). <!-- id: 20 -->
 - [x] Fix TypeScript build error (parkingLatLong tuple types). <!-- id: 21 -->
 - [x] Add responsive sidebar toggle for mobile. <!-- id: 22 -->
-- [x] Gate admin curation panel behind auth check. <!-- id: 23 -->
+- [x] Gate admin curation panel behind auth check. <!-- id: 23 -->
+- [x] Populate routes.json with curated footpaths — automated via scripts/build-routes.mjs
+      (Turrutebasen + OSM shortest-path routing); 8 destinations curated, the rest are
+      blocked on dataset fixes (task 24). Admin tool remains for manual overrides. <!-- id: 18 -->
+- [x] Fix footpath rendering issues: terrain and selected route lost on style switch,
+      DNT overlay visible from z12 but clickable from z11, absurd straight fallback
+      lines for destinations with placeholder parking data. <!-- id: 25 -->
+- [x] Mobile v1 (mobile/): Expo Go app for Android/iOS — shared diorama style in a
+      WebView, destination list/filters/details, curated footpath display. Map style
+      extracted to src/lib/mapStyle.ts and shared verbatim between web and mobile. <!-- id: 28 -->

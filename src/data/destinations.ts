@@ -1,4 +1,6 @@
-import { utmToLatLong } from '@/lib/coords';
+// Relative import (not the '@/' alias) so the mobile app's Metro bundler can
+// consume this file too — mobile/ maps '@/' to its own source tree.
+import { utmToLatLong } from '../lib/coords';
 
 export type DifficultyLevel = 'easy' | 'medium' | 'hard' | 'expert';
 

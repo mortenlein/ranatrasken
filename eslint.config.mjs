@@ -12,8 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // One-off CommonJS data tooling, not part of the app build.
+    // One-off CommonJS data tooling and generated scratch files.
     "scripts/**",
+    "temp/**",
+    // The Expo app lints with its own config (mobile/eslint.config.js).
+    "mobile/**",
   ]),
 ]);
 
