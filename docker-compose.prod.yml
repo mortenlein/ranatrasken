@@ -1,0 +1,51 @@
+# Production compose for ash. Two ways in, nothing on 0.0.0.0:
+#   - tailnet:  100.76.162.28:3000 (web) / :8082 (metro), open to tailnet devices
+#   - public:   https://ranatrasken.mortenlab.xyz -> Cloudflare Access (Google
+#     SSO) -> `homeassistant` tunnel -> 127.0.0.1:8096; src/proxy.ts verifies
+#     the Access JWT at the origin for that hostname only (in-app auth is
+#     demo-grade, so the edge gate is what makes public exposure OK).
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Secrets live in the server-local .env (chmod 600, gitignored); compose also
+# reads NEXT_PUBLIC_MAPTILER_KEY from it for the build arg below.
+name: ranatrasken
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_MAPTILER_KEY: ${NEXT_PUBLIC_MAPTILER_KEY}
+    container_name: ranatrasken-web
+    ports:
+      - "100.76.162.28:3000:3000"
+      # Loopback bind for the Cloudflare tunnel (ranatrasken.mortenlab.xyz).
+      - "127.0.0.1:8096:3000"
+    env_file:
+      - .env
+    environment:
+      # Same SQLite file the host .env points at, seen from inside the container.
+      - DATABASE_URL=file:/app/data/prod.db
+      # next-auth v5 on plain tailnet HTTP (not Vercel): trust the Host header.
+      - AUTH_TRUST_HOST=true
+    volumes:
+      - ./data:/app/data:rw
+    restart: unless-stopped
+
+  # Metro / Expo dev server so Expo Go on the phone can load the mobile app
+  # from anywhere on the tailnet. Port 8082: another project's Metro already
+  # owns 8081 on this host (~/projects/corenxt-mobil). The whole repo is
+  # mounted because metro.config.js watches the repo root (shared mapStyle).
+  metro:
+    image: node:20-bookworm-slim
+    container_name: ranatrasken-metro
+    working_dir: /repo/mobile
+    user: node
+    command: npx expo start --go --port 8082
+    environment:
+      - REACT_NATIVE_PACKAGER_HOSTNAME=100.76.162.28
+    ports:
+      - "100.76.162.28:8082:8082"
+    volumes:
+      - ./:/repo:rw
+    restart: unless-stopped

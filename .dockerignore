@@ -1,0 +1,14 @@
+# Web image build context — keep it lean and secret-free.
+node_modules
+.next
+.git
+data
+temp
+logs
+mobile
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+.claude
