@@ -14,11 +14,13 @@
 - [ ] Offline caching for map tiles/route data (Phase 3). <!-- id: 12 -->
 - [ ] Mobile phase 2: stampcard in the app (needs a deployed backend + real auth,
       replacing the demo credentials provider). <!-- id: 26 -->
-- [ ] Proxy DNT trail tiles through our own backend for production: the CDN's CORS
-      whitelist only covers ut.no/localhost origins, so a deployed web app (or any
-      other origin) loses the red trail overlay without a proxy. <!-- id: 27 -->
 
 ## Completed
+- [x] Proxy DNT trail tiles through our own backend: /api/dnt-tiles/[z]/[x]/[y] route
+      handler fetches cdn.dnt.org server-side (same-origin for the browser, so the CORS
+      whitelist no longer matters); the web map passes the proxy URL to
+      generateCustomStyle, whose new optional dntTilesUrl param defaults to the CDN so
+      the mobile WebView (localhost baseUrl trick) is unchanged. <!-- id: 27 -->
 - [x] Architectural Review of initial file structure. <!-- id: 0 -->
 - [x] Initialize Next.js project. <!-- id: 1 -->
 - [x] Configure MapLibre with Kartverket Topo and MapTiler Terrain. <!-- id: 2 -->

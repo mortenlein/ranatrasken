@@ -8,6 +8,12 @@ import { useLanguage } from '@/lib/i18n';
 
 const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY || 'get_your_free_key_at_maptiler_com';
 
+// DNT trail tiles must come from our own origin — cdn.dnt.org's CORS whitelist
+// only covers ut.no/localhost (TASK.md id 27). Absolute URL because MapLibre
+// resolves tile templates outside the document's base. Only called from
+// effects, where window is available.
+const dntProxyTilesUrl = () => `${window.location.origin}/api/dnt-tiles/{z}/{x}/{y}`;
+
 export interface MapRef {
   flyTo: (dest: Destination) => void;
 }
@@ -59,7 +65,7 @@ const MapComponent = forwardRef<MapRef, MapComponentProps>((props, ref) => {
 
     const mapInstance = new maplibregl.Map({
       container: mapContainer.current,
-      style: generateCustomStyle(mapStyle, MAPTILER_KEY) as maplibregl.StyleSpecification,
+      style: generateCustomStyle(mapStyle, MAPTILER_KEY, dntProxyTilesUrl()) as maplibregl.StyleSpecification,
       ...INITIAL_VIEW,
       // No maxBounds — camera moves freely around the diorama
     });
@@ -116,7 +122,7 @@ const MapComponent = forwardRef<MapRef, MapComponentProps>((props, ref) => {
 
     if (currentStyleRef.current !== mapStyle) {
       currentStyleRef.current = mapStyle;
-      map.current.setStyle(generateCustomStyle(mapStyle, MAPTILER_KEY) as maplibregl.StyleSpecification);
+      map.current.setStyle(generateCustomStyle(mapStyle, MAPTILER_KEY, dntProxyTilesUrl()) as maplibregl.StyleSpecification);
     }
   }, [mapStyle]);
 

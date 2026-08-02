@@ -55,8 +55,18 @@ export const INITIAL_VIEW = {
   maxPitch: 85,
 };
 
+// cdn.dnt.org only sends CORS headers to a whitelist (ut.no, localhost), so a
+// deployed web origin must fetch these tiles through its own same-origin proxy
+// (/api/dnt-tiles). The mobile WebView spoofs `baseUrl: 'http://localhost'` and
+// can keep hitting the CDN directly, hence the parameter with this default.
+export const DNT_TILES_URL = 'https://cdn.dnt.org/prod/ut-no/map/tiles/merged/v5/{z}/{x}/{y}.pbf';
+
 // Helper to generate the custom MapLibre style with all sources and layers
-export const generateCustomStyle = (baseMapStyleId: string, maptilerKey: string) => {
+export const generateCustomStyle = (
+  baseMapStyleId: string,
+  maptilerKey: string,
+  dntTilesUrl: string = DNT_TILES_URL,
+) => {
   const B = RANA_BOX_GEOGRAPHIC;
 
   // Define GeoJSON for the Rana polygon outline
@@ -148,7 +158,7 @@ export const generateCustomStyle = (baseMapStyleId: string, maptilerKey: string)
       },
       'dnt-paths': {
         type: 'vector',
-        tiles: ['https://cdn.dnt.org/prod/ut-no/map/tiles/merged/v5/{z}/{x}/{y}.pbf'],
+        tiles: [dntTilesUrl],
         minzoom: 4,
         maxzoom: 12, // DNT tiles only exist up to z=12
         bounds: [RANA_BOX_GEOGRAPHIC.minLng, RANA_BOX_GEOGRAPHIC.minLat, RANA_BOX_GEOGRAPHIC.maxLng, RANA_BOX_GEOGRAPHIC.maxLat],
