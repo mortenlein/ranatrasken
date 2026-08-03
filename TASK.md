@@ -16,6 +16,12 @@
       replacing the demo credentials provider). <!-- id: 26 -->
 
 ## Completed
+- [x] Map tile/terrain performance pass: base map switched from 256px png to 512px webp
+      MapTiler tiles (4x fewer requests, ~60% fewer bytes), terrain-rgb source inlined
+      (no blocking tiles.json fetch) and capped at its real z14 (was 15 — every deep
+      zoom fired failing DEM requests instead of overzooming), DNT proxy got an
+      in-memory LRU cache, preconnect hint for api.maptiler.com. Shared style, so
+      mobile benefits too. <!-- id: 28 -->
 - [x] Proxy DNT trail tiles through our own backend: /api/dnt-tiles/[z]/[x]/[y] route
       handler fetches cdn.dnt.org server-side (same-origin for the browser, so the CORS
       whitelist no longer matters); the web map passes the proxy URL to

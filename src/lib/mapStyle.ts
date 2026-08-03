@@ -141,19 +141,26 @@ export const generateCustomStyle = (
     },
     // Define all sources, with explicit bounds where needed
     sources: {
+      // 512px webp tiles: 4x fewer requests than 256px, and webp is ~60%
+      // smaller than the png equivalent for these styles.
       'maptiler-raster': {
         type: 'raster',
-        tiles: [`https://api.maptiler.com/maps/${baseMapStyleId}/256/{z}/{x}/{y}.png?key=${maptilerKey}`],
-        tileSize: 256,
+        tiles: [`https://api.maptiler.com/maps/${baseMapStyleId}/{z}/{x}/{y}.webp?key=${maptilerKey}`],
+        tileSize: 512,
         bounds: [RANA_BOX_GEOGRAPHIC.minLng, RANA_BOX_GEOGRAPHIC.minLat, RANA_BOX_GEOGRAPHIC.maxLng, RANA_BOX_GEOGRAPHIC.maxLat],
         maxzoom: 18,
         minzoom: 0,
       },
+      // Inline tile template (not the tiles.json url) so the terrain needs no
+      // blocking metadata fetch on load or style switch. The dataset ends at
+      // z14 — declaring more makes MapLibre fire requests that all fail
+      // instead of overzooming the z14 data.
       'terrain-rgb': {
         type: 'raster-dem',
-        url: `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${maptilerKey}`,
+        tiles: [`https://api.maptiler.com/tiles/terrain-rgb-v2/{z}/{x}/{y}.webp?key=${maptilerKey}`],
+        tileSize: 512,
         bounds: [RANA_BOX_GEOGRAPHIC.minLng, RANA_BOX_GEOGRAPHIC.minLat, RANA_BOX_GEOGRAPHIC.maxLng, RANA_BOX_GEOGRAPHIC.maxLat],
-        maxzoom: 15,
+        maxzoom: 14,
         minzoom: 0,
       },
       'dnt-paths': {

@@ -28,6 +28,9 @@ export default function RootLayout({
   return (
     <html lang="no">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        {/* Warm the tile-server connection before MapLibre's first fetch
+            (React hoists resource links into <head>). */}
+        <link rel="preconnect" href="https://api.maptiler.com" crossOrigin="anonymous" />
         <LanguageProvider>
           <AuthProvider>
             {children}
