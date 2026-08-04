@@ -39,6 +39,9 @@ services:
   metro:
     image: node:20-bookworm-slim
     container_name: ranatrasken-metro
+    # Shown in Expo Go's dev-server list ("Ranatrasken on <hostname>") —
+    # without this it's a random container-id hex string.
+    hostname: ash
     working_dir: /repo/mobile
     user: node
     command: npx expo start --go --port 8082
