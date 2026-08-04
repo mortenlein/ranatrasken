@@ -44,6 +44,9 @@ services:
     command: npx expo start --go --port 8082
     environment:
       - REACT_NATIVE_PACKAGER_HOSTNAME=100.76.162.28
+      # Surface the (otherwise swallowed) dev-session registration result in
+      # `docker logs` — it's what makes the project appear in Expo Go's list.
+      - DEBUG=expo:start:server:developmentSession
     ports:
       - "100.76.162.28:8082:8082"
     volumes:
