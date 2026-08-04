@@ -2,7 +2,14 @@
   "expo": {
     "name": "Ranatrasken",
     "slug": "ranatrasken",
+    "owner": "mortenlein",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/da492572-604d-43d6-80d2-fed4fba66025"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "ranatrasken",
@@ -37,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "da492572-604d-43d6-80d2-fed4fba66025"
+      }
     }
   }
 }
