@@ -48,4 +48,8 @@ services:
       - "100.76.162.28:8082:8082"
     volumes:
       - ./:/repo:rw
+      # Host Expo login (mortenlein): a logged-in `expo start` registers a
+      # development session, so Expo Go signed into the same account lists
+      # this project on its home screen (tailnet has no LAN auto-discovery).
+      - ~/.expo:/home/node/.expo:rw
     restart: unless-stopped
