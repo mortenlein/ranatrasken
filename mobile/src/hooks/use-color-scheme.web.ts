@@ -9,7 +9,7 @@ export function useColorScheme() {
 
   useEffect(() => {
     // Template's intentional one-time hydration flip for static web rendering.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // (SDK 54's eslint-config predates the set-state-in-effect rule.)
     setHasHydrated(true);
   }, []);
 
