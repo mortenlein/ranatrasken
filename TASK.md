@@ -16,6 +16,14 @@
       replacing the demo credentials provider). <!-- id: 26 -->
 
 ## Completed
+- [x] Mobile-friendly pass (web + Expo map): web sidebar became a true overlay drawer
+      (before, the hidden sidebar kept its 400px flex slot — on phones the map got a
+      ~60px sliver and the close button sat off-screen at left:412px); map is now
+      full-bleed, drawer starts closed on <=768px viewports, selecting a trip closes
+      it and shows a bottom info card over the map. Expo WebView map: DOM markers
+      replaced with GL circle/icon layers (canvas-drawn P badge — style has no glyphs
+      endpoint, so no text layers), pixelRatio capped at 2, preconnect hints.
+      <!-- id: 29 -->
 - [x] Map tile/terrain performance pass: base map switched from 256px png to 512px webp
       MapTiler tiles (4x fewer requests, ~60% fewer bytes), terrain-rgb source inlined
       (no blocking tiles.json fetch) and capped at its real z14 (was 15 — every deep

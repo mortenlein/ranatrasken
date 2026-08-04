@@ -30,3 +30,14 @@ body {
 .maplibregl-popup-content p {
   margin: 2px 0;
 }
+
+/* Full-viewport app shell. dvh tracks the real visible height on mobile
+   browsers where the URL bar expands/collapses; vh is the fallback. */
+.app-main {
+  height: 100vh;
+}
+@supports (height: 100dvh) {
+  .app-main {
+    height: 100dvh;
+  }
+}

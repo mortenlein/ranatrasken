@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useSyncExternalStore } from 'react';
 import MapComponent, { MapRef } from '@/components/MapComponent';
 import { destinations, Destination, difficultyMeta, DifficultyLevel } from '@/data/destinations';
 import UserMenu from '@/components/UserMenu';
@@ -9,6 +9,17 @@ import { useLanguage } from '@/lib/i18n';
 import { useSession } from 'next-auth/react';
 import { stampDestination, getUserStamps } from '@/app/actions/stamps';
 import { CheckCircle, Award, List, History, MapPin, Menu, X } from 'lucide-react';
+
+// Phone-sized viewport, kept in sync via useSyncExternalStore (SSR-safe: the
+// server snapshot says desktop, the client corrects after hydration).
+const MOBILE_MQ = '(max-width: 768px)';
+const subscribeToMobileMq = (onChange: () => void) => {
+  const mq = window.matchMedia(MOBILE_MQ);
+  mq.addEventListener('change', onChange);
+  return () => mq.removeEventListener('change', onChange);
+};
+const isMobileNow = () => window.matchMedia(MOBILE_MQ).matches;
+const isMobileOnServer = () => false;
 
 export default function Home() {
   const mapRef = useRef<MapRef>(null);
@@ -22,6 +33,17 @@ export default function Home() {
   const [userStamps, setUserStamps] = useState<number[]>([]);
   const [isStamping, setIsStamping] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isMobile = useSyncExternalStore(subscribeToMobileMq, isMobileNow, isMobileOnServer);
+
+  // On phone-sized viewports the sidebar is a drawer that starts closed, so
+  // the map is what you land on. (Post-hydration effect, not initial state:
+  // the page is prerendered without a window, and hydration must match.)
+  useEffect(() => {
+    if (window.matchMedia(MOBILE_MQ).matches) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSidebarOpen(false);
+    }
+  }, []);
   const isAdmin = session?.user?.email?.includes('admin') ?? false;
   
   // Admin Curation State
@@ -83,6 +105,7 @@ export default function Home() {
       setSelectedDest(dest);
       setView('explore');
       mapRef.current?.flyTo(dest);
+      if (isMobile) setSidebarOpen(false);
     }
   };
 
@@ -110,15 +133,19 @@ export default function Home() {
   const handleFlyTo = (dest: Destination) => {
     setSelectedDest(dest);
     mapRef.current?.flyTo(dest);
+    // Picking a trip on a phone should show the map, not keep it covered.
+    if (isMobile) setSidebarOpen(false);
   };
 
   return (
-    <main style={{ width: '100vw', height: '100vh', overflow: 'hidden', display: 'flex', position: 'relative' }}>
-      {/* Mobile hamburger toggle */}
+    <main className="app-main" style={{ width: '100vw', overflow: 'hidden', position: 'relative' }}>
+      {/* Sidebar toggle — pinned just outside the drawer edge, clamped so it
+          never leaves the viewport on narrow screens. */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         style={{
-          position: 'absolute', top: '12px', left: sidebarOpen ? '412px' : '12px',
+          position: 'absolute', top: '12px',
+          left: sidebarOpen ? 'min(412px, calc(100vw - 52px))' : '12px',
           zIndex: 20, width: '40px', height: '40px',
           background: 'rgba(255,255,255,0.95)', border: '1px solid #ddd',
           borderRadius: '8px', cursor: 'pointer',
@@ -129,13 +156,15 @@ export default function Home() {
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* Sidebar */}
+      {/* Sidebar — a drawer overlaying the map, which keeps full width behind
+          it (before, the hidden sidebar still occupied its flex slot and left
+          a dead strip; on phones the map got a ~60px sliver). */}
       <div style={{
+        position: 'absolute', top: 0, left: 0, height: '100%',
         width: '400px', maxWidth: '85vw',
-        height: '100vh',
         background: '#fff',
         boxShadow: '2px 0 10px rgba(0,0,0,0.1)',
-        zIndex: 10,
+        zIndex: 15,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -400,8 +429,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Map */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      {/* Map — always full-bleed */}
+      <div style={{ position: 'absolute', inset: 0 }}>
         <MapComponent 
           ref={mapRef} 
           selectedDestination={selectedDest} 
@@ -449,6 +478,48 @@ export default function Home() {
             Topo
           </button>
         </div>
+
+        {/* Selected-trip card — when the drawer is closed, picking a trip
+            still shows the essentials over the map (the pattern the Expo app
+            uses). "Se detaljer" reopens the drawer. */}
+        {selectedDest && !sidebarOpen && (
+          <div style={{
+            position: 'absolute', left: '12px', right: '12px', bottom: '16px',
+            maxWidth: '420px', margin: '0 auto', zIndex: 10,
+            background: 'rgba(255,255,255,0.97)', borderRadius: '12px',
+            padding: '12px 14px', boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+            display: 'flex', flexDirection: 'column', gap: '8px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{
+                width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0,
+                background: difficultyMeta[selectedDest.difficulty].color
+              }} />
+              <strong style={{
+                fontSize: '16px', color: '#1a1a1a', flex: 1,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+              }}>{selectedDest.name}</strong>
+              {userStamps.includes(selectedDest.id) && <CheckCircle size={16} color="#28a745" />}
+              <button
+                onClick={() => setSelectedDest(null)}
+                aria-label={language === 'nb' ? 'Lukk' : 'Close'}
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#888', padding: '4px', display: 'flex' }}>
+                <X size={16} />
+              </button>
+            </div>
+            <div style={{ fontSize: '12px', color: '#555' }}>
+              {t(difficultyMeta[selectedDest.difficulty].label)} • {selectedDest.elevation} moh
+            </div>
+            <button
+              onClick={() => setSidebarOpen(true)}
+              style={{
+                padding: '10px', background: '#007bff', color: '#fff', border: 'none',
+                borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer'
+              }}>
+              {language === 'nb' ? 'Se detaljer' : 'View details'}
+            </button>
+          </div>
+        )}
 
         {/* Admin Tools Overlay — only visible to admins */}
         {isAdmin && (
